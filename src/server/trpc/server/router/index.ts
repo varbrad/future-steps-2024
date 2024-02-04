@@ -5,16 +5,14 @@ import { teams, users } from '@/drizzle/schema';
 import jsonUsers from '@/data/users.json'
 import jsonTeams from '@/data/teams.json'
 import { getStatsForUser } from '@/utils/stats';
-import { eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 
 export const trpcRouter = router({
   teams: procedure.query(() => {
     return db.select().from(teams)
   }),
 
-  users: procedure.query(() => {
-    return db.select().from(users)
-  }),
+  users: procedure.query(() => db.select().from(users).orderBy(desc(users.steps))),
 
   sync: procedure.mutation(async () => {
     await db.insert(teams).values(jsonTeams.map(t => ({ id: t.id, name: t.name }))).onConflictDoNothing()

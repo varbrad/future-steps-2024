@@ -8,6 +8,12 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      colors: {
+        'wise-purple': {
+          DEFAULT: '#663399',
+          'dark': '#4d2d6f',
+        },
+      },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":
