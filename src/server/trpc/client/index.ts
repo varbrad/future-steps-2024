@@ -1,6 +1,5 @@
 import { httpBatchLink } from '@trpc/client';
 import { createTRPCNext } from '@trpc/next';
-import { ssrPrepass } from '@trpc/next/ssrPrepass';
 import { TrpcRouter } from '../server/router';
 
 function getBaseUrl() {
@@ -21,7 +20,6 @@ function getBaseUrl() {
 }
 
 export const trpc = createTRPCNext<TrpcRouter>({
-  ssrPrepass,
   config(opts) {
     return {
       links: [
@@ -34,5 +32,5 @@ export const trpc = createTRPCNext<TrpcRouter>({
       ],
     };
   },
-  ssr: true,
+  ssr: false,
 });
