@@ -11,4 +11,6 @@ export const users = pgTable('users', {
   lastName: varchar('last_name', { length: 256 }).notNull(),
 
   steps: integer('steps').notNull().default(0),
+
+  teamId: integer('team_id').references(() => teams.id),
 })
