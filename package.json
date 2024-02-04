@@ -9,10 +9,18 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@tanstack/react-query": "latest",
+    "@trpc/client": "next",
+    "@trpc/next": "next",
+    "@trpc/react-query": "next",
+    "@trpc/server": "next",
+    "@vercel/postgres": "^0.7.2",
+    "drizzle-orm": "^0.29.3",
     "lodash": "^4.17.21",
     "next": "14.1.0",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.202",
@@ -20,6 +28,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
+    "drizzle-kit": "^0.20.14",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
     "postcss": "^8",
