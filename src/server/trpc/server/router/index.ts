@@ -22,7 +22,6 @@ export const trpcRouter = router({
 
     for (const u of jsonUsers) {
       const stats = await getStatsForUser(u)
-      console.log(u, stats)
       await db.update(users).set({ steps: stats.total }).where(eq(users.id, u.id))
     }
 
