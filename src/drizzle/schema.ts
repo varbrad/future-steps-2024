@@ -7,6 +7,8 @@ export const teams = pgTable('teams', {
 
 export const users = pgTable('users', {
   id: integer('id').primaryKey(),
-  firstName: varchar('first_name', { length: 256 }),
-  lastName: varchar('last_name', { length: 256 }),
+  firstName: varchar('first_name', { length: 256 }).notNull(),
+  lastName: varchar('last_name', { length: 256 }).notNull(),
+
+  steps: integer('steps').notNull().default(0),
 })
