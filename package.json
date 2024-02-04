@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node ./migrate.ts",
+    "build": "next build && node --require esbuild-register ./migrate.ts",
     "start": "next start",
     "lint": "next lint"
   },
@@ -29,6 +29,7 @@
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
     "drizzle-kit": "^0.20.14",
+    "esbuild-register": "^3.5.0",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
     "postcss": "^8",
