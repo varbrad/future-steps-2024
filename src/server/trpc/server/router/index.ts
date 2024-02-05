@@ -8,18 +8,38 @@ import { getStatsForUser } from '@/utils/stats';
 import { desc, eq, sql } from 'drizzle-orm';
 
 export const trpcRouter = router({
-  teams: procedure.query(async () => db.select({
-      id: teams.id,
-      name: teams.name,
-      totalSteps: sql<number>`COALESCE(SUM(${users.steps}), 0) as totalSteps`.mapWith(v => Number(v || 0)),
-    })
-    .from(teams)
-    .leftJoin(users, eq(teams.id, users.teamId))
-    .orderBy(desc(sql`totalSteps`))
-    .groupBy(teams.id)
+  // teams: procedure.query(async () => db.select({
+  //     id: teams.id,
+  //     name: teams.name,
+  //     totalSteps: sql<number>`COALESCE(SUM(${users.steps}), 0) as totalSteps`.mapWith(v => Number(v || 0)),
+  //   })
+  //   .from(teams)
+  //   .leftJoin(users, eq(teams.id, users.teamId))
+  //   .orderBy(desc(sql`totalSteps`))
+  //   .groupBy(teams.id)
+  // ),
+  teams: procedure.query(async () => {
+      const ts = await db.query.teams.findMany({
+        with: {
+          users: true,
+        }
+      })
+      
+      return ts.map(t => ({
+        id: t.id,
+        name: t.name,
+        totalSteps: t.users.reduce((acc, u) => acc + u.steps, 0),
+        users: t.users.slice().sort((a, b) => a.firstName.localeCompare(b.firstName)),
+      })).sort((a, b) => b.totalSteps - a.totalSteps)
+    }
   ),
 
-  users: procedure.query(() => db.select().from(users).orderBy(desc(users.steps))),
+  users: procedure.query(() => db.query.users.findMany({
+    with: {
+      team: true
+    },
+    orderBy: desc(users.steps)
+  })),
 
   sync: procedure.mutation(async () => {
     await db.delete(users)
