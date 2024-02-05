@@ -31,7 +31,7 @@ const Index = ({ name }: Props) => {
             <div key={t.id} className={twMerge('flex flex-row items-center gap-4 p-2', ix % 2 === 0 ? 'bg-black/0' : 'bg-wise-purple/5', ix < 3 ? 'text-xl font-black' : 'text-lg font-normal')}>
               <p className='font-black text-wise-purple-dark w-8 text-right'>{ix+1}.</p>
               <p>{t.name}</p>
-              <p className='text-xl ml-auto'>{t.totalSteps.toLocaleString('en-GB')}</p>
+              <p className='text-xl ml-auto'>{(t.totalSteps ?? 0).toLocaleString('en-GB')}</p>
             </div>
           ))}
         </div>

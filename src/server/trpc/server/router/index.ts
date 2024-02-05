@@ -11,7 +11,7 @@ export const trpcRouter = router({
   teams: procedure.query(async () => db.select({
       id: teams.id,
       name: teams.name,
-      totalSteps: sql<number>`SUM(${users.steps}) as totalSteps`.mapWith(Number),
+      totalSteps: sql<number>`COALESCE(SUM(${users.steps}), 0) as totalSteps`.mapWith(v => Number(v || 0)),
     })
     .from(teams)
     .leftJoin(users, eq(teams.id, users.teamId))
