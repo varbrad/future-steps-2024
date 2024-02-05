@@ -1,4 +1,5 @@
 import { trpc } from "@/server/trpc/client"
+import Head from "next/head"
 import { twMerge } from 'tailwind-merge'
 
 type Props = {
@@ -12,6 +13,9 @@ const Index = ({ name }: Props) => {
 
   return (
     <div className='bg-wise-purple-dark p-4 overflow-hidden'>
+      <Head>
+        <title>Wise Future Steps 2024</title>
+      </Head>
       <div className='bg-white p-4 rounded-md shadow-md text-wise-purple-dark flex flex-col gap-4'>
         {sync.isPending ? <p className='text-wise-purple-dark'>Syncing...</p> : null}
         <h1 className='font-black text-2xl' onDoubleClick={() => sync.mutateAsync()}>Wise. Future Steps 2024 Leaderboard</h1>
