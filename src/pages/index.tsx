@@ -21,6 +21,7 @@ const Index = ({ name }: Props) => {
         <h1 className='font-black text-2xl' onDoubleClick={() => sync.mutateAsync()}>Wise. Future Steps 2024 Leaderboard</h1>
         <h2 className='font-bold text-xl'>Individual.</h2>
         <div className='flex flex-col gap-1 p-4 border border-black/10'>
+          {users.isLoading ? <p>Loading...</p> : null}
           {users.data?.map((u,ix) => (
             <div key={u.id} className={twMerge('flex flex-row items-center gap-4 p-2', ix % 2 === 0 ? 'bg-wise-purple/10' : 'bg-wise-purple/5', ix < 3 ? 'text-xl font-bold' : 'text-lg font-normal')}>
               <div className={twMerge('w-1.5 rounded-full self-stretch -mr-2', ix === 0 ? 'bg-yellow-400' : ix === 1 ? 'bg-slate-400' : ix === 2 ? 'bg-amber-600' : 'bg-wise-purple-dark/10')} />
@@ -35,6 +36,7 @@ const Index = ({ name }: Props) => {
         </div>
         <h2 className='font-bold text-xl'>Teams.</h2>
         <div className='flex flex-col gap-1 p-4 border border-black/10'>
+          {teams.isLoading ? <p>Loading...</p> : null}
           {teams.data?.map((t,ix) => (
             <div key={t.id} className={twMerge('flex flex-row items-center gap-4 p-2', ix % 2 === 0 ? 'bg-wise-purple/10' : 'bg-wise-purple/5', ix < 3 ? 'text-xl font-bold' : 'text-lg font-normal')}>
               <div className={twMerge('w-1.5 rounded-full self-stretch -mr-2', ix === 0 ? 'bg-yellow-400' : ix === 1 ? 'bg-slate-400' : ix === 2 ? 'bg-amber-600' : 'bg-wise-purple-dark/10')} />
