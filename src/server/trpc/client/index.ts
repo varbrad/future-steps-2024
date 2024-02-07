@@ -17,13 +17,18 @@ export const trpc = createTRPCNext<TrpcRouter>({
       }
     }
   },
-  config(opts) {
+  config({ ctx }) {
     const url = isClient() ? '/api/trpc' : process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/api/trpc` : 'http://localhost:3000/api/trpc'
     console.log({ url })
     return {
       links: [
         httpBatchLink({
           url,
+          headers() {
+            if (!ctx?.req?.headers) return {}
+            const { connection, ...headers } = ctx.req.headers
+            return headers
+          }
         }),
       ],
     };
