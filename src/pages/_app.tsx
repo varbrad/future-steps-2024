@@ -10,7 +10,7 @@ const notoSans = Noto_Sans({ subsets: ['latin'] });
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
-    <div className={`w-screen overflow-hidden ${notoSans.className}`}>
+    <div className={`w-full overflow-hidden ${notoSans.className}`}>
       <Component {...pageProps} />
       <Analytics />
       <SpeedInsights />
