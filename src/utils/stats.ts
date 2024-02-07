@@ -10,11 +10,13 @@ export const getStatsForUser = async (user: Pick<User, 'id'>): Promise<UserStats
   
     const stats: UserStats = {
       total: json.steps[json.steps.length - 1] || 0,
+      x: json.x,
+      steps: json.steps,
     }
   
     return stats
   } catch (error) {
     console.error(error)
-    return { total: 0 }
+    return { total: 0, x: [], steps: [] }
   }
 }

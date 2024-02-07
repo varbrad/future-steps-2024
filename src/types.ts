@@ -4,4 +4,6 @@ export type User = typeof users[number]
 
 export type UserStats = {
   total: number
+  x: string[]
+  steps: number[]
 }
