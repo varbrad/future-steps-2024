@@ -18,8 +18,7 @@ export const trpc = createTRPCNext<TrpcRouter>({
     }
   },
   config({ ctx }) {
-    const url = isClient() ? '/api/trpc' : process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/api/trpc` : 'http://localhost:3000/api/trpc'
-    console.log({ url })
+    const url = isClient() ? '/api/trpc' : process.env.BASE_URL ? `${process.env.BASE_URL}/api/trpc` : 'http://localhost:3000/api/trpc'
     return {
       links: [
         httpBatchLink({
@@ -27,8 +26,8 @@ export const trpc = createTRPCNext<TrpcRouter>({
           headers() {
             if (!ctx?.req?.headers) return {}
             const { connection, ...headers } = ctx.req.headers
-            return headers
-          }
+            return { ...headers, 'x-trpc-origin': 'server' }
+          },
         }),
       ],
     };
