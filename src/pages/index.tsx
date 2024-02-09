@@ -60,7 +60,7 @@ const Index = () => {
       <div className='bg-white p-4 rounded-md shadow-md text-wise-purple-dark flex flex-col gap-4'>
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
           <div>
-            <h2 className='font-bold text-xl'>Most Daily Steps.</h2>
+            <h2 className='font-bold text-xl mb-4'>Most Daily Steps.</h2>
             <div className='flex flex-col gap-1 p-4 border border-black/10'>
               {dailySteps.isLoading ? <p>Loading...</p> : null}
               {dailySteps.data?.allTime.map((ds,ix) => (
@@ -77,7 +77,7 @@ const Index = () => {
             </div>
           </div>
           <div>
-            <h2 className='font-bold text-xl'>Daily Step Leaders.</h2>
+            <h2 className='font-bold text-xl mb-4'>Daily Step Leaders.</h2>
             <div className='flex flex-col gap-1 p-4 border border-black/10'>
               {dailySteps.isLoading ? <p>Loading...</p> : null}
               {dailySteps.data?.perDay.map((day, ix) => (
