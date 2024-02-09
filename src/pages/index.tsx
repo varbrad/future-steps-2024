@@ -4,10 +4,9 @@ import Head from "next/head"
 import { twMerge } from 'tailwind-merge'
 
 const Index = () => {
-  const sync = trpc.sync.useMutation()
+  const sync = trpc.sync.now.useMutation()
   const teams = trpc.teams.useQuery()
   const users = trpc.users.useQuery()
-
   const dailySteps = trpc.dailySteps.useQuery()
 
   return (
