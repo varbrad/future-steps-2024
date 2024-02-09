@@ -1,19 +1,19 @@
 import { relations } from 'drizzle-orm';
-import { integer, pgTable, primaryKey, varchar } from 'drizzle-orm/pg-core';
+import { integer, sqliteTable, text, primaryKey } from 'drizzle-orm/sqlite-core';
 
-export const teams = pgTable('teams', {
+export const teams = sqliteTable('teams', {
   id: integer('id').primaryKey(),
-  name: varchar('name', { length: 256 }),
+  name: text('name', { length: 256 }),
 });
 
 export const teamRelations = relations(teams, ({ many }) => ({
   users: many(users),
 }));
 
-export const users = pgTable('users', {
+export const users = sqliteTable('users', {
   id: integer('id').primaryKey(),
-  firstName: varchar('first_name', { length: 256 }).notNull(),
-  lastName: varchar('last_name', { length: 256 }).notNull(),
+  firstName: text('first_name', { length: 256 }).notNull(),
+  lastName: text('last_name', { length: 256 }).notNull(),
 
   steps: integer('steps').notNull().default(0),
 
@@ -25,8 +25,8 @@ export const userRelations = relations(users, ({ one, many }) => ({
   history: many(stepHistory),
 }))
 
-export const stepHistory = pgTable('step_histories', {
-  x: varchar('x', { length: 256 }).notNull(),
+export const stepHistory = sqliteTable('step_histories', {
+  x: text('x', { length: 256 }).notNull(),
   steps: integer('steps').notNull(),
 
   userId: integer('user_id').notNull().references(() => users.id),
