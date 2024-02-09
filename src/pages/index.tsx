@@ -1,4 +1,5 @@
 import { trpc } from "@/server/trpc/client"
+import dayjs from "dayjs"
 import Head from "next/head"
 import { twMerge } from 'tailwind-merge'
 
@@ -7,8 +8,10 @@ const Index = () => {
   const teams = trpc.teams.useQuery()
   const users = trpc.users.useQuery()
 
+  const dailySteps = trpc.dailySteps.useQuery()
+
   return (
-    <div className='bg-wise-purple-dark p-4 overflow-hidden'>
+    <div className='bg-wise-purple-dark p-4 overflow-hidden flex flex-col gap-4'>
       <Head>
         <title>Wise Future Steps 2024</title>
       </Head>
@@ -32,6 +35,8 @@ const Index = () => {
             )
           })}
         </div>
+        </div>
+      <div className='bg-white p-4 rounded-md shadow-md text-wise-purple-dark flex flex-col gap-4'>
         <h2 className='font-bold text-xl'>Teams.</h2>
         <div className='flex flex-col gap-1 p-4 border border-black/10'>
           {teams.isLoading ? <p>Loading...</p> : null}
@@ -50,6 +55,44 @@ const Index = () => {
               <p className='text-2xl ml-auto tracking-wide'>{(t.totalSteps ?? 0).toLocaleString('en-GB')}</p>
             </div>
           ))}
+        </div>
+        </div>
+      <div className='bg-white p-4 rounded-md shadow-md text-wise-purple-dark flex flex-col gap-4'>
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+          <div>
+            <h2 className='font-bold text-xl'>Most Daily Steps.</h2>
+            <div className='flex flex-col gap-1 p-4 border border-black/10'>
+              {dailySteps.isLoading ? <p>Loading...</p> : null}
+              {dailySteps.data?.allTime.map((ds,ix) => (
+                <div key={`${ds.day}-${ds.user.id}`} className={twMerge('flex flex-row items-center gap-4 p-2', ix % 2 === 0 ? 'bg-wise-purple/10' : 'bg-wise-purple/5', ix < 3 ? 'text-xl font-bold' : 'text-lg font-normal')}>
+                <div className={twMerge('w-1.5 rounded-full self-stretch -mr-2', ix === 0 ? 'bg-yellow-400' : ix === 1 ? 'bg-slate-400' : ix === 2 ? 'bg-amber-600' : 'bg-wise-purple-dark/10')} />
+                <p className='font-black text-wise-purple-dark w-8 text-right'>{ix+1}.</p>
+                <div className='flex flex-col items-start'>
+                  <p className='flex flex-row items-center gap-2'>{ds.user.firstName} {ds.user.lastName} <span className='font-light text-sm'>{dayjs(ds.day).format('Do MMM')}</span></p>
+                  {ds.user.team ? <p className='text-xs px-2 py-0.5 border border-wise-purple-dark/10 bg-white rounded-md font-normal text-wise-purple-dark/75'>{ds.user.team.name}</p> : null}
+                </div>
+                <p className='text-2xl ml-auto tracking-wide'>{ds.steps.toLocaleString('en-GB')}</p>
+              </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h2 className='font-bold text-xl'>Daily Step Leaders.</h2>
+            <div className='flex flex-col gap-1 p-4 border border-black/10'>
+              {dailySteps.isLoading ? <p>Loading...</p> : null}
+              {dailySteps.data?.perDay.map((day, ix) => (
+                <div key={`${day.day}-${day.user.id}`} className={twMerge('flex flex-row items-center gap-4 p-2 text-lg font-normal', ix % 2 === 0 ? 'bg-wise-purple/10' : 'bg-wise-purple/5')}>
+                <div className={twMerge('w-1.5 rounded-full self-stretch -mr-2 bg-wise-purple-dark/10')} />
+                <p className='font-black text-wise-purple-dark w-24 text-right'>{dayjs(day.day).format('Do MMM')}.</p>
+                <div className='flex flex-col items-start'>
+                  <p className='flex flex-row items-center gap-2'>{day.user.firstName} {day.user.lastName}</p>
+                  {day.user.team ? <p className='text-xs px-2 py-0.5 border border-wise-purple-dark/10 bg-white rounded-md font-normal text-wise-purple-dark/75'>{day.user.team.name}</p> : null}
+                </div>
+                <p className='text-2xl ml-auto tracking-wide'>{day.steps.toLocaleString('en-GB')}</p>
+              </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

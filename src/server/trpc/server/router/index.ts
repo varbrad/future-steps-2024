@@ -4,7 +4,7 @@ import { db } from '@/drizzle';
 import { stepHistory, teams, users } from '@/drizzle/schema';
 import jsonUsers from '@/data/users.json'
 import jsonTeams from '@/data/teams.json'
-import { getStatsForUser } from '@/utils/stats';
+import { calculateStepsPerDay, getStatsForUser } from '@/utils/stats';
 import { desc, eq } from 'drizzle-orm';
 import { mixpanel } from '@/server/mixpanel';
 import { isEqual } from 'lodash';
@@ -38,6 +38,43 @@ export const trpcRouter = router({
       },
       orderBy: desc(users.steps)
     })
+  }),
+
+  dailySteps: procedure.query(async () => {
+    const users = await db.query.users.findMany({
+      with: {
+        history: true,
+        team: true,
+      }
+    })
+
+    const userSteps = users.map(u => ({
+      user: u,
+      dailySteps: calculateStepsPerDay(
+        u.history.map(h => h.x),
+        u.history.map(h => h.steps),
+      ),
+    }))
+
+    const allTime = userSteps.flatMap(u => {
+      return u.dailySteps.map((s, ix) => ({
+        day: s.day,
+        steps: s.steps,
+        user: u.user,
+      }))
+    }).sort((a, b) => b.steps - a.steps)
+    
+    const maxStepsMap = new Map<string, (typeof allTime)[number]>()
+    allTime.forEach(s => {
+      const existing = maxStepsMap.get(s.day)
+      if (!existing || s.steps > existing.steps) {
+        maxStepsMap.set(s.day, s)
+      }
+    })
+
+    const perDay = Array.from(maxStepsMap.values()).sort((a, b) => a.day.localeCompare(b.day))
+
+    return { allTime: allTime.slice(0, 10), perDay }
   }),
 
   sync: procedure.mutation(async () => {
