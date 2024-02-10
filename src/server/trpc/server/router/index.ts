@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import { procedure, router } from '..';
 import { db } from '@/drizzle';
 import { stepHistory, teams, users } from '@/drizzle/schema';
@@ -7,7 +6,6 @@ import jsonTeams from '@/data/teams.json'
 import { calculateStepsPerDay, getStatsForUser } from '@/utils/stats';
 import { desc, eq } from 'drizzle-orm';
 import { mixpanel } from '@/server/mixpanel';
-import { isEqual } from 'lodash';
 import { TRPCError } from '@trpc/server';
 
 const syncData = async () => {
@@ -138,14 +136,17 @@ export const trpcRouter = router({
 
   sync: router({
     now: procedure.mutation(syncData),
-    cron: procedure.query(async ({ ctx: { isVercelCronJob }}) => {
+    cron: procedure.query(async ({ ctx: { isVercelCronJob, trace }}) => {
       if (!isVercelCronJob) {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
         })
       }
 
-      return await syncData()
+      mixpanel.track('CronSync Begin', { trace })
+      const result = await syncData()
+      mixpanel.track('CronSync Complete', { trace })
+      return result
     })
   })
 });
