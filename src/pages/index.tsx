@@ -82,7 +82,7 @@ const Index = () => {
               {dailySteps.data?.perDay.map((day, ix) => (
                 <div key={`${day.day}-${day.user.id}`} className={twMerge('flex flex-row items-center gap-4 p-2 text-lg font-normal', ix % 2 === 0 ? 'bg-wise-purple/10' : 'bg-wise-purple/5')}>
                 <div className={twMerge('w-1.5 rounded-full self-stretch -mr-2 bg-wise-purple-dark/10')} />
-                <p className='font-black text-wise-purple-dark w-16 text-right text-sm flex-shrink-0'>{dayjs(day.day).format('Do MMM')}.</p>
+                <p className='font-black text-wise-purple-dark w-20 text-right text-sm flex-shrink-0'>{dayjs(day.day).format('Do MMM')}.</p>
                 <div className='flex flex-col items-start'>
                   <p className='flex flex-row items-center gap-2'>{day.user.firstName} {day.user.lastName}</p>
                   {day.user.team ? <p className='text-xs px-2 py-0.5 border border-wise-purple-dark/10 bg-white rounded-md font-normal text-wise-purple-dark/75'>{day.user.team.name}</p> : null}
