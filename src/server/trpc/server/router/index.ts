@@ -1,12 +1,27 @@
 import { procedure, router } from '..';
 import { db } from '@/drizzle';
-import { stepHistory, teams, users } from '@/drizzle/schema';
+import { actionHistory, stepHistory, teams, users } from '@/drizzle/schema';
 import jsonUsers from '@/data/users.json'
 import jsonTeams from '@/data/teams.json'
 import { calculateStepsPerDay, getStatsForUser } from '@/utils/stats';
 import { desc, eq } from 'drizzle-orm';
 import { mixpanel } from '@/server/mixpanel';
 import { TRPCError } from '@trpc/server';
+import { JSDOM } from 'jsdom'
+
+const updateAction = (action: string) => {
+  const lastRun = new Date()
+  return db.insert(actionHistory).values({
+    id: action,
+    lastRun,
+  }).onConflictDoUpdate({
+    target: actionHistory.id,
+    set: {
+      lastRun,
+    },
+  })
+
+}
 
 const syncUsernames = async () => {
   for (const user of jsonUsers) {
@@ -14,6 +29,28 @@ const syncUsernames = async () => {
     if (!existingUser) continue
     await db.update(users).set({ username: user.username }).where(eq(users.id, user.id))
   }
+  await updateAction('sync.usernames')
+  return true
+}
+
+const getDonation = async (username: string) => {
+  const response = await fetch(`https://events.princes-trust.org.uk/fundraisers/${username}/future-steps`, { method: 'GET' })
+  const text = await response.text()
+
+  console.log(text)
+  const dom = new JSDOM(text)
+
+  const donation = dom.window.document.querySelector('.iveRaised > .money > strong')?.textContent
+  return donation
+}
+
+const syncDonations = async () => {
+  const users = await db.query.users.findMany({ columns: { id: true, username: true } })
+
+  const don1 = await getDonation('adinabogdan')
+  console.log(don1)
+
+  await updateAction('sync.donations')
   return true
 }
 
@@ -71,6 +108,7 @@ const syncData = async () => {
   }
 
   mixpanel.track('SyncComplete')
+  await updateAction('sync.now')
 
   return true
 }
@@ -143,9 +181,12 @@ export const trpcRouter = router({
     return { allTime: allTime.slice(0, 10), perDay }
   }),
 
+  actionHistories: procedure.query(() => db.query.actionHistory.findMany()),
+
   sync: router({
     now: procedure.mutation(syncData),
     usernames: procedure.mutation(syncUsernames),
+    donations: procedure.mutation(syncDonations),
     cron: procedure.query(async ({ ctx: { isVercelCronJob, trace }}) => {
       if (!isVercelCronJob) {
         throw new TRPCError({

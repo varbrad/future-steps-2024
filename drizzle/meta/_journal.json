@@ -15,6 +15,20 @@
       "when": 1708252589036,
       "tag": "0001_overrated_squadron_sinister",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1708254401109,
+      "tag": "0002_stormy_enchantress",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1708256155024,
+      "tag": "0003_wonderful_black_widow",
+      "breakpoints": true
     }
   ]
 }
