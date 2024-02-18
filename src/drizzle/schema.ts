@@ -43,4 +43,5 @@ export const stepHistoryRelations = relations(stepHistory, ({ one }) => ({
 export const actionHistory = sqliteTable('action_histories', {
   id: text('id', { length: 256 }).primaryKey(),
   lastRun: integer('last_run', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+  runTimeMs: integer('run_time_ms'),
 })

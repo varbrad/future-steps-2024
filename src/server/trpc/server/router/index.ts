@@ -9,27 +9,33 @@ import { mixpanel } from '@/server/mixpanel';
 import { TRPCError } from '@trpc/server';
 import { JSDOM } from 'jsdom'
 
-const updateAction = (action: string) => {
+const updateAction = (action: string, runTimeMs: number) => {
   const lastRun = new Date()
   return db.insert(actionHistory).values({
     id: action,
     lastRun,
+    runTimeMs,
   }).onConflictDoUpdate({
     target: actionHistory.id,
     set: {
       lastRun,
+      runTimeMs,
     },
   })
 
 }
 
+const syncUsername = async (userId: number, username: string) => {
+  const existingUser = await db.query.users.findFirst({ where: eq(users.id, userId) })
+  if (!existingUser) return
+  await db.update(users).set({ username }).where(eq(users.id, userId))
+}
 const syncUsernames = async () => {
-  for (const user of jsonUsers) {
-    const existingUser = await db.query.users.findFirst({ where: eq(users.id, user.id) })
-    if (!existingUser) continue
-    await db.update(users).set({ username: user.username }).where(eq(users.id, user.id))
-  }
-  await updateAction('sync.usernames')
+  const start = performance.now()
+  const promises = jsonUsers.map(u => syncUsername(u.id, u.username))
+  await Promise.all(promises)
+  const end = performance.now()
+  await updateAction('sync.usernames', end - start)
   return true
 }
 
@@ -37,78 +43,98 @@ const getDonation = async (username: string) => {
   const response = await fetch(`https://events.princes-trust.org.uk/fundraisers/${username}/future-steps`, { method: 'GET' })
   const text = await response.text()
 
-  console.log(text)
   const dom = new JSDOM(text)
+  const donation = dom.window.document.querySelector('.iveRaised > .money > strong')?.textContent?.replace('£', '')
 
-  const donation = dom.window.document.querySelector('.iveRaised > .money > strong')?.textContent
-  return donation
+  return donation !== undefined ? Number(donation) : null
 }
 
 const syncDonations = async () => {
-  const users = await db.query.users.findMany({ columns: { id: true, username: true } })
+  const start = performance.now()
+  const allUsers = await db.query.users.findMany({ columns: { id: true, username: true } })
 
-  const don1 = await getDonation('adinabogdan')
-  console.log(don1)
+  const promises = allUsers.map(async (user) => {
+    const donationPounds = user.username ? await getDonation(user.username) : null
+    await db.update(users).set({ donationPounds }).where(eq(users.id, user.id))
+  })
 
-  await updateAction('sync.donations')
+  await Promise.all(promises)
+
+  const end = performance.now()
+  await updateAction('sync.donations', end - start)
   return true
+}
+
+const syncTeam = async (team: typeof jsonTeams[0]) => {
+  const existingTeam = await db.query.teams.findFirst({ where: eq(teams.id, team.id) })
+  if (!existingTeam) {
+    mixpanel.track('CreateTeam', { id: team.id, name: team.name })
+    await db.insert(teams).values({ id: team.id, name: team.name })
+    return
+  } else {
+    if (existingTeam.name === team.name) {
+      return
+    }
+    mixpanel.track('UpdateTeam', { id: team.id, name: team.name })
+    await db.update(teams).set({ name: team.name }).where(eq(teams.id, team.id))
+  }
+}
+
+const updateUser = async (user: typeof jsonUsers[0]) => {
+  const existingUser = await db.query.users.findFirst({ where: eq(users.id, user.id), with: { history: true } })
+  if (!existingUser) {
+    mixpanel.track('CreateUser', { id: user.id, name: user.firstName + ' ' + user.lastName })
+    const stats = await getStatsForUser({ id: user.id })
+    await db.insert(users).values({ id: user.id, firstName: user.firstName, lastName: user.lastName, teamId: user.teamId, steps: stats.total })
+    if (stats.x.length > 0) {
+      await db.insert(stepHistory).values(stats.x.map((x, ix) => ({
+        x: x,
+        steps: stats.steps[ix],
+        userId: user.id,
+      })))
+    }
+    return
+  } else {
+    const stats = await getStatsForUser({ id: user.id })
+    if (stats.total !== existingUser.steps) {
+      mixpanel.track('UpdateUser', { id: user.id, name: user.firstName + ' ' + user.lastName, total: stats.total })
+      await db.update(users).set({ steps: stats.total }).where(eq(users.id, user.id))
+    }
+
+    await db.delete(stepHistory).where(eq(stepHistory.userId, user.id))
+    mixpanel.track('UpdateStepHistory', { id: user.id, name: user.firstName + ' ' + user.lastName, x: stats.x, steps: stats.steps })
+    if (stats.x.length > 0) {
+      await db.insert(stepHistory).values(stats.x.map((x, ix) => ({
+        x: x,
+        steps: stats.steps[ix],
+        userId: user.id,
+      })))
+    }
+  }
 }
 
 const syncData = async () => {
   mixpanel.track('tRPC', { procedure: 'sync', type: 'mutation' })
 
+  const start = performance.now()
+
   // Try and create any missing teams, or update if already existing
-  for (const team of jsonTeams) {
-    const existingTeam = await db.query.teams.findFirst({ where: eq(teams.id, team.id) })
-    if (!existingTeam) {
-      mixpanel.track('CreateTeam', { id: team.id, name: team.name })
-      await db.insert(teams).values({ id: team.id, name: team.name })
-      continue  
-    } else {
-      if (existingTeam.name === team.name) {
-        continue
-      }
-      mixpanel.track('UpdateTeam', { id: team.id, name: team.name })
-      await db.update(teams).set({ name: team.name }).where(eq(teams.id, team.id))
-    }
-  }
+  const teamPromises = jsonTeams.map(syncTeam)
+  await Promise.all(teamPromises)
 
   // Try and create any missing users, or update if already existing
-  for (const user of jsonUsers) {
-    const existingUser = await db.query.users.findFirst({ where: eq(users.id, user.id), with: { history: true } })
-    if (!existingUser) {
-      mixpanel.track('CreateUser', { id: user.id, name: user.firstName + ' ' + user.lastName })
-      const stats = await getStatsForUser({ id: user.id })
-      await db.insert(users).values({ id: user.id, firstName: user.firstName, lastName: user.lastName, teamId: user.teamId, steps: stats.total })
-      if (stats.x.length > 0) {
-        await db.insert(stepHistory).values(stats.x.map((x, ix) => ({
-          x: x,
-          steps: stats.steps[ix],
-          userId: user.id,
-        })))
-      }
-      continue
-    } else {
-      const stats = await getStatsForUser({ id: user.id })
-      if (stats.total !== existingUser.steps) {
-        mixpanel.track('UpdateUser', { id: user.id, name: user.firstName + ' ' + user.lastName, total: stats.total })
-        await db.update(users).set({ steps: stats.total }).where(eq(users.id, user.id))
-      }
+  const userPromises = jsonUsers.map(updateUser)
+  await Promise.all(userPromises)
 
-      await db.delete(stepHistory).where(eq(stepHistory.userId, user.id))
-      mixpanel.track('UpdateStepHistory', { id: user.id, name: user.firstName + ' ' + user.lastName, x: stats.x, steps: stats.steps })
-      if (stats.x.length > 0) {
-        await db.insert(stepHistory).values(stats.x.map((x, ix) => ({
-          x: x,
-          steps: stats.steps[ix],
-          userId: user.id,
-        })))
-      }
-    }
-  }
+  // Sync usernames
+  await syncUsernames()
 
+  // Sync donations
+  await syncDonations()
+
+  const end = performance.now()
   mixpanel.track('SyncComplete')
-  await updateAction('sync.now')
+  await updateAction('sync.now', end - start)
 
   return true
 }
@@ -142,6 +168,32 @@ export const trpcRouter = router({
       },
       orderBy: desc(users.steps)
     })
+  }),
+
+  donations: procedure.query(async () => {
+    mixpanel.track('tRPC', { procedure: 'donations', type: 'query' })
+    const teamList = await db.query.teams.findMany({
+      columns: {
+        id: true,
+        name: true,
+      },
+      with: {
+        users: true,
+      }
+    })
+    const userDonations = await db.query.users.findMany({
+      with: {
+        team: true,
+      },
+      orderBy: desc(users.donationPounds)
+    })
+
+    const teams = teamList.map(t => ({
+      ...t,
+      donations: userDonations.filter(u => u.teamId === t.id).reduce((acc, u) => acc + (u.donationPounds ?? 0), 0),
+    })).sort((a,b) => b.donations - a.donations).filter(t => t.donations > 0)
+
+    return { users: userDonations.filter(u => (u.donationPounds ?? 0) > 0), teams }
   }),
 
   dailySteps: procedure.query(async () => {

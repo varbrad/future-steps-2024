@@ -1,0 +1,1 @@
+ALTER TABLE action_histories ADD `run_time_ms` integer;
