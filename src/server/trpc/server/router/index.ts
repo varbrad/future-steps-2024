@@ -127,10 +127,10 @@ const syncData = async () => {
   await Promise.all(userPromises)
 
   // Sync usernames
-  await syncUsernames()
+  // await syncUsernames()
 
-  // Sync donations
-  await syncDonations()
+  // // Sync donations
+  // await syncDonations()
 
   const end = performance.now()
   mixpanel.track('SyncComplete')
