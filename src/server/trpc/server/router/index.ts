@@ -53,12 +53,13 @@ const syncDonations = async () => {
   const start = performance.now()
   const allUsers = await db.query.users.findMany({ columns: { id: true, username: true } })
 
-  const promises = allUsers.map(async (user) => {
-    const donationPounds = user.username ? await getDonation(user.username) : null
-    await db.update(users).set({ donationPounds }).where(eq(users.id, user.id))
+  await db.transaction(async tx => {
+    const promises = allUsers.map(async (user) => {
+      const donationPounds = user.username ? await getDonation(user.username) : null
+      await tx.update(users).set({ donationPounds }).where(eq(users.id, user.id))
+    })
+    await Promise.all(promises)
   })
-
-  await Promise.all(promises)
 
   const end = performance.now()
   await updateAction('sync.donations', end - start)
