@@ -24,6 +24,7 @@ const Admin = () => {
     return {
       name: action,
       lastRun: be ? dayjs(be.lastRun) : null,
+      runTimeMs: be ? be.runTimeMs : null,
       status: mutation?.status,
       mutateAsync: mutation?.mutateAsync,
     }
@@ -35,10 +36,11 @@ const Admin = () => {
         <title>Wise Future Steps 2024 - Admin</title>
       </Head>
       <div className='bg-white p-4 rounded-md shadow-md text-wise-purple-dark flex flex-col gap-4'>
-        {allActions?.map(({ name, lastRun, mutateAsync, status }) => {
-          return <div key={name} className='grid grid-cols-4 gap-4'>
+        {allActions?.map(({ name, lastRun, mutateAsync, status, runTimeMs }) => {
+          return <div key={name} className='grid grid-cols-5 gap-4'>
             <p>{name}</p>
             <p className='font-bold text-xs'>Last run: {lastRun ? lastRun.format('DD/MM/YYYY HH:mm') : '-'}</p>
+            <p>{runTimeMs ? `${runTimeMs.toFixed(2)}ms` : '-'}</p>
             {mutateAsync ? <button onClick={() => mutateAsync()}>Run</button> : <div />}
             <p>{status ?? '-'}</p>
           </div>
