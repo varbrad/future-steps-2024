@@ -4,7 +4,6 @@ import Head from "next/head"
 import { twMerge } from 'tailwind-merge'
 
 const Index = () => {
-  const sync = trpc.sync.now.useMutation()
   const teams = trpc.teams.useQuery()
   const users = trpc.users.useQuery()
   const dailySteps = trpc.dailySteps.useQuery()
@@ -15,8 +14,7 @@ const Index = () => {
         <title>Wise Future Steps 2024</title>
       </Head>
       <div className='bg-white p-4 rounded-md shadow-md text-wise-purple-dark flex flex-col gap-4'>
-        {sync.isPending ? <p className='text-wise-purple-dark'>Syncing...</p> : null}
-        <h1 className='font-black text-2xl' onDoubleClick={() => sync.mutateAsync()}>Wise. Future Steps 2024 Leaderboard</h1>
+        <h1 className='font-black text-2xl'>Wise. Future Steps 2024 Leaderboard</h1>
         <h2 className='font-bold text-xl'>Individual.</h2>
         <div className='flex flex-col gap-1 p-4 border border-black/10'>
           {users.isLoading ? <p>Loading...</p> : null}

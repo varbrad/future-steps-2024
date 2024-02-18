@@ -8,6 +8,15 @@ import { desc, eq } from 'drizzle-orm';
 import { mixpanel } from '@/server/mixpanel';
 import { TRPCError } from '@trpc/server';
 
+const syncUsernames = async () => {
+  for (const user of jsonUsers) {
+    const existingUser = await db.query.users.findFirst({ where: eq(users.id, user.id) })
+    if (!existingUser) continue
+    await db.update(users).set({ username: user.username }).where(eq(users.id, user.id))
+  }
+  return true
+}
+
 const syncData = async () => {
   mixpanel.track('tRPC', { procedure: 'sync', type: 'mutation' })
 
@@ -136,6 +145,7 @@ export const trpcRouter = router({
 
   sync: router({
     now: procedure.mutation(syncData),
+    usernames: procedure.mutation(syncUsernames),
     cron: procedure.query(async ({ ctx: { isVercelCronJob, trace }}) => {
       if (!isVercelCronJob) {
         throw new TRPCError({
