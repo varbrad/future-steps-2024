@@ -12,6 +12,7 @@ export const teamRelations = relations(teams, ({ many }) => ({
 
 export const users = sqliteTable('users', {
   id: integer('id').primaryKey(),
+  username: text('username', { length: 256 }).unique(),
   firstName: text('first_name', { length: 256 }).notNull(),
   lastName: text('last_name', { length: 256 }).notNull(),
 
