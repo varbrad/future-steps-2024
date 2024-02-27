@@ -8,6 +8,10 @@ const Index = () => {
   const users = trpc.users.useQuery()
   const donations = trpc.donations.useQuery()
   const dailySteps = trpc.dailySteps.useQuery()
+  const updates = trpc.actionHistories.useQuery()
+
+  const lastUpdateRaw = updates.data?.find(u => u.id === 'sync.now')?.lastRun
+  const lastUpdate = lastUpdateRaw ? dayjs(lastUpdateRaw).format('hh:mma [on] Do MMMM YYYY') : 'Never'
 
   return (
     <div className='bg-wise-purple-dark p-4 overflow-hidden flex flex-col gap-4'>
@@ -15,7 +19,12 @@ const Index = () => {
         <title>Wise Future Steps 2024</title>
       </Head>
       <div className='bg-white p-4 rounded-md shadow-md text-wise-purple-dark flex flex-col gap-4'>
-        <h1 className='font-black text-2xl'>Wise. Future Steps 2024 Leaderboard</h1>
+        <div className='flex flex-row items-center'>
+          <h1 className='font-black text-2xl'>Wise. Future Steps 2024 Leaderboard</h1>
+          <p className='ml-auto text-xs opacity-75'>Data last updated: {lastUpdate}</p>
+        </div>
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+          <div>
         <h2 className='font-bold text-xl'>Individual.</h2>
         <div className='flex flex-col gap-1 p-4 border border-black/10'>
           {users.isLoading ? <p>Loading...</p> : null}
@@ -32,9 +41,10 @@ const Index = () => {
               </div>
             )
           })}
+          </div>
         </div>
-        </div>
-      <div className='bg-white p-4 rounded-md shadow-md text-wise-purple-dark flex flex-col gap-4'>
+        <div>
+
         <h2 className='font-bold text-xl'>Teams.</h2>
         <div className='flex flex-col gap-1 p-4 border border-black/10'>
           {teams.isLoading ? <p>Loading...</p> : null}
@@ -53,6 +63,8 @@ const Index = () => {
               <p className='text-2xl ml-auto tracking-wide'>{(t.totalSteps ?? 0).toLocaleString('en-GB')}</p>
             </div>
           ))}
+            </div>
+          </div>
         </div>
       </div>
       <div className='bg-white p-4 rounded-md shadow-md text-wise-purple-dark flex flex-col gap-4'>
