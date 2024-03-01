@@ -18,6 +18,12 @@ const Index = () => {
       <Head>
         <title>Wise Future Steps 2024</title>
       </Head>
+      {users.isLoading ? <div className='bg-white p-4 rounded-md shadow-md text-wise-purple-dark flex flex-col gap-4'>
+        <div className='flex flex-row items-center'>
+          <h1 className='font-black text-2xl'>Wise. Future Steps 2024 Leaderboard</h1>
+          <p className='ml-auto text-xs opacity-75'>Loading...</p>
+        </div></div> :
+      <>
       <div className='bg-white p-4 rounded-md shadow-md text-wise-purple-dark flex flex-col gap-4'>
         <div className='flex flex-row items-center'>
           <h1 className='font-black text-2xl'>Wise. Future Steps 2024 Leaderboard</h1>
@@ -147,6 +153,7 @@ const Index = () => {
           </div>
         </div>
       </div>
+      </>}
     </div>
   )
 }

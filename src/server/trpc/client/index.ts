@@ -1,13 +1,11 @@
 import { httpBatchLink } from '@trpc/client';
 import { createTRPCNext } from '@trpc/next';
-import { ssrPrepass } from '@trpc/next/ssrPrepass';
 import { TrpcRouter } from '../server/router';
 
 // @ts-ignore
 const isClient = () => !!global.window
 
 export const trpc = createTRPCNext<TrpcRouter>({
-  ssrPrepass,
   abortOnUnmount: true,
   overrides: {
     useMutation: {
@@ -32,5 +30,5 @@ export const trpc = createTRPCNext<TrpcRouter>({
       ],
     };
   },
-  ssr: true,
+  ssr: false,
 });
